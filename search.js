@@ -1,11 +1,22 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const Table = require('cli-table3');
 const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
 
 let visitedUrls = new Set();
 let crawlResults = [];
-const crawlFile = './results/crawlResults.json';
-const searchFile = './results/searchResults.json';
+const resultsDir = './results';
+if (!fs.existsSync(resultsDir)) {
+  fs.mkdirSync(resultsDir);
+}
+const crawlFile = path.join(resultsDir, 'crawlResults.json');
+const searchFile = path.join(resultsDir, 'searchResults.json');
+let rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+})
 
 async function crawlPage(url) {
   // queue of links
@@ -64,6 +75,7 @@ async function crawlPage(url) {
 // self reference score
 async function searchPage(term) {
   let rankingData = [];
+
   try {
     crawlResults = JSON.parse(fs.readFileSync(crawlFile, 'utf8'));
     crawlResults.forEach(page => {
@@ -87,7 +99,7 @@ async function searchPage(term) {
       });
 
       const outerReferenceScore = 10 * outerReference;
-      const termOccurrenceScore = 10 * termOccurrence;
+      const termOccurrenceScore = 5 * termOccurrence;
       const selfReferenceScore = -15 * selfReference;
       const totalScore = outerReferenceScore + termOccurrenceScore + selfReferenceScore;
 
@@ -126,20 +138,57 @@ async function searchPage(term) {
   }
 }
 
-async function main(url, term) {
-  try {
-    await crawlPage(url);
-    await searchPage(term);
+async function displayResults() {
+  let table = new Table({
+    head: ['URL', 'Ocorrências', 'Popularidade', 'Autorreferência', 'Total'],
+  });
 
+  try {
+    searchResults = JSON.parse(fs.readFileSync(searchFile, 'utf8'));
+    searchResults.forEach(page => {
+      if (page.termOccurrence) {
+        table.push([
+          page.url,
+          page.termOccurrenceScore,
+          page.outerReferenceScore,
+          page.selfReferenceScore,
+          page.totalScore,
+        ])
+      }
+    });
+
+    console.log(table.toString());
+
+  } catch (error) {
+    console.error('Erro na display\n');
+  }
+}
+
+async function askUser(question) {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      resolve(answer.trim());
+    });
+  });
+}
+
+async function main() {
+  // let urlPage = 'https://hmccl.github.io/sci-fi/duna.html';
+  // let urlPage = 'http://127.0.0.1:8000/sci-fi/2001.html';
+  // let searchTerm = 'viagem';
+  let urlPage = await askUser('Endereço da página inicial:\n');
+
+  try {
+    while (true) {
+      let searchTerm = await askUser('Termo de busca:\n');
+      await crawlPage(urlPage);
+      await searchPage(searchTerm);
+      await displayResults();
+    }
   } catch (error) {
     console.error('Erro na execução\n');
   }
 }
 
-// python3 -m http.server
+main();
 
-// let urlPage = 'https://hmccl.github.io/sci-fi/duna.html';
-let urlPage = 'http://127.0.0.1:8000/sci-fi/2001.html';
-let searchTerm = 'ficção científica';
-
-main(urlPage, searchTerm);
