@@ -177,11 +177,11 @@ async function main() {
   // let urlPage = 'http://127.0.0.1:8000/sci-fi/2001.html';
   // let searchTerm = 'viagem';
   let urlPage = await askUser('Endereço da página inicial:\n');
+  await crawlPage(urlPage);
 
   try {
     while (true) {
       let searchTerm = await askUser('Termo de busca:\n');
-      await crawlPage(urlPage);
       await searchPage(searchTerm);
       await displayResults();
     }
