@@ -2,7 +2,11 @@
 
 Sistema de web crawler e busca para páginas sobre filmes de ficção científica, implementando algoritmo de ranking baseado em popularidade e relevância.
 
+[Filmes de Ficção Científica](https://hmccl.github.io/search-sci-fi/)
+
 ## Relação entre as páginas
+
+Tabela de hyperlinks entre as páginas.
 
 | Página | Outcoming Hyperlink | Incoming Hyperlink |
 | --- | --- | --- |
@@ -14,11 +18,13 @@ Sistema de web crawler e busca para páginas sobre filmes de ficção científic
 | Metropolis | Blade Runner | 2001 |
 | Mochileiro | Blade Runner, Interestelar, Matrix | Blade Runner, Duna, Interestelar |
 
+Grafos de hyperlinks entre as páginas.
+
 ![Grafo das páginas](./grafo.png "Grafo das páginas")
 
 ## Instruções
 
-Após clonar o repositório execute os seguintes comandos.
+Clone o repositório e execute os seguintes comandos.
 
 ```bash
 # Instala pacotes
@@ -31,6 +37,6 @@ node search.js
 
 ### Passo a Passo
 
-1. Insere página inicial
-2. Pesquisa termo desejado
-3. Realiza outra pesquisa ou pressiona `CTRL+C` para finalizar a execução
+1. Insira a página inicial, por exemplo: [https://hmccl.github.io/search-sci-fi/sci-fi/2001.html](https://hmccl.github.io/search-sci-fi/sci-fi/2001.html)
+2. Pesquise o termo desejado
+3. Realize outra pesquisa ou pressione `CTRL+C` para finalizar a execução
