@@ -18,7 +18,7 @@ Tabela de hyperlinks entre as páginas.
 | Metropolis | Blade Runner | 2001 |
 | Mochileiro | Blade Runner, Interestelar, Matrix | Blade Runner, Duna, Interestelar |
 
-Grafos de hyperlinks entre as páginas.
+Grafo de hyperlinks entre as páginas.
 
 ![Grafo das páginas](./grafo.png "Grafo das páginas")
 
