@@ -5,19 +5,25 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
+// aux variables
 let visitedUrls = new Set();
 let crawlResults = [];
+
+// data files
 const resultsDir = './results';
 if (!fs.existsSync(resultsDir)) {
   fs.mkdirSync(resultsDir);
 }
 const crawlFile = path.join(resultsDir, 'crawlResults.json');
 const searchFile = path.join(resultsDir, 'searchResults.json');
+
+// user interaction
 let rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 })
 
+// breadth-first search
 async function crawlPage(url) {
   // queue of links
   let queue = [url];
@@ -55,7 +61,10 @@ async function crawlPage(url) {
         }
       });
 
+      // data structure
       crawlResults.push({ url, content, hyperlinks });
+
+      // storing data
       fs.writeFileSync(crawlFile, JSON.stringify(crawlResults, null, "\t"));
 
     } catch (err) {
@@ -68,17 +77,23 @@ async function crawlPage(url) {
 // plus 10 points for each outer reference
 // minus 15 points for each self reference
 // plus 5 points for each term occurrence
+//
 // order by (desc)
 // total score
 // outer reference score
 // term occurrence score
 // self reference score
 async function searchPage(term) {
+  // website ranking
   let rankingData = [];
 
   try {
+    // read from file
     crawlResults = JSON.parse(fs.readFileSync(crawlFile, 'utf8'));
+    // loop for each page
     crawlResults.forEach(page => {
+
+      // count outer reference
       let outerReference = 0;
       crawlResults.forEach(outerPage => {
         if (outerPage.url !== page.url && outerPage.hyperlinks.includes(page.url)) {
@@ -86,11 +101,13 @@ async function searchPage(term) {
         }
       });
 
+      // count term occurrence
       let termOccurrence = 0;
       const regexp = new RegExp(term, 'gi');
       const matches = page.content.match(regexp);
       termOccurrence = matches ? matches.length : 0;
 
+      // count self reference
       let selfReference = 0;
       page.hyperlinks.forEach(hyperlink => {
         if (hyperlink === page.url) {
@@ -98,11 +115,13 @@ async function searchPage(term) {
         }
       });
 
+      // score
       const outerReferenceScore = 10 * outerReference;
       const termOccurrenceScore = 5 * termOccurrence;
       const selfReferenceScore = -15 * selfReference;
       const totalScore = outerReferenceScore + termOccurrenceScore + selfReferenceScore;
 
+      // data structure
       rankingData.push({
         url: page.url,
         totalScore,
@@ -115,6 +134,7 @@ async function searchPage(term) {
       });
     });
 
+    // sorting
     rankingData.sort((a, b) => {
       if (b.totalScore !== a.totalScore) {
         return b.totalScore - a.totalScore;
@@ -131,6 +151,7 @@ async function searchPage(term) {
       return b.selfReferenceScore - a.selfReferenceScore;
     });
 
+    // storing data
     fs.writeFileSync(searchFile, JSON.stringify(rankingData, null, "\t"));
 
   } catch (error) {
@@ -138,13 +159,16 @@ async function searchPage(term) {
   }
 }
 
+// user interface table
 async function displayResults() {
   let table = new Table({
     head: ['URL', 'Ocorrências', 'Popularidade', 'Autorreferência', 'Total'],
   });
 
   try {
+    // read from file
     searchResults = JSON.parse(fs.readFileSync(searchFile, 'utf8'));
+    // loop for each page
     searchResults.forEach(page => {
       if (page.termOccurrence) {
         table.push([
@@ -157,6 +181,7 @@ async function displayResults() {
       }
     });
 
+    // display on console
     console.log(table.toString());
 
   } catch (error) {
@@ -164,6 +189,7 @@ async function displayResults() {
   }
 }
 
+// user interaction
 async function askUser(question) {
   return new Promise((resolve) => {
     rl.question(question, (answer) => {
@@ -173,13 +199,12 @@ async function askUser(question) {
 }
 
 async function main() {
-  // let urlPage = 'https://hmccl.github.io/sci-fi/duna.html';
-  // let urlPage = 'http://127.0.0.1:8000/sci-fi/2001.html';
-  // let searchTerm = 'viagem';
+  // initial URL
   let urlPage = await askUser('Endereço da página inicial:\n');
   await crawlPage(urlPage);
 
   try {
+    // serach term loop
     while (true) {
       let searchTerm = await askUser('Termo de busca:\n');
       await searchPage(searchTerm);
