@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apresentação do Buscador</title>
+  <meta name="author" content="Grupo">
+  <meta name="description" content="Apresentação do Buscador">
+  <link rel="stylesheet" href="https://unpkg.com/missing.css">
+  <link rel="icon" href="favicon.svg" type="image/svg">
+</head>
+
+<body>
+  <header>
+    <h1>Apresentação do Buscador de Filmes</h1>
+  </header>
+
+  <main>
+    <article>
+      <section>
+        <h3>Buscador</h3>
+
+        <ul>
+          <li>Leitura do arquivo do crawler</li>
+          <li>Calcula pontuação para cada página</li>
+          <li>Cria uma estrutura de dados</li>
+          <li>Ordena as páginas conforme as regras</li>
+          <li>Salva os dados em um arquivo JSON</li>
+        </ul>
+
+<pre><code>// pontuação
+// mais 10 pontos para cada referência externa
+// menos 15 pontos para cada autorreferência
+// mais 5 pontos para cada ocorrência do termo
+//
+// ordenar por (desc)
+// pontuação total
+// pontuação de referência externa
+// pontuação de ocorrência do termo
+// pontuação de autorreferência
+async function searchPage(term) {
+  // ranking do site
+  let rankingData = [];
+
+  try {
+    // ler do arquivo
+    crawlResults = JSON.parse(fs.readFileSync(crawlFile, &#39;utf8&#39;));
+    // loop para cada página
+    crawlResults.forEach(page =&gt; {
+
+      // contar referência externa
+      let outerReference = 0;
+      crawlResults.forEach(outerPage =&gt; {
+        if (outerPage.url !== page.url &amp;&amp; outerPage.hyperlinks.includes(page.url)) {
+          outerReference++;
+        }
+      });
+
+      // contar ocorrência do termo
+      let termOccurrence = 0;
+      const regexp = new RegExp(term, &#39;gi&#39;);
+      const matches = page.content.match(regexp);
+      termOccurrence = matches ? matches.length : 0;
+
+      // contar autorreferência
+      let selfReference = 0;
+      page.hyperlinks.forEach(hyperlink =&gt; {
+        if (hyperlink === page.url) {
+          selfReference++;
+        }
+      });
+
+      // pontuação
+      const outerReferenceScore = 10 * outerReference;
+      const termOccurrenceScore = 5 * termOccurrence;
+      const selfReferenceScore = -15 * selfReference;
+      const totalScore = outerReferenceScore + termOccurrenceScore + selfReferenceScore;
+
+      // estrutura de dados
+      rankingData.push({
+        url: page.url,
+        totalScore,
+        outerReferenceScore,
+        outerReference,
+        termOccurrenceScore,
+        termOccurrence,
+        selfReferenceScore,
+        selfReference
+      });
+    });
+
+    // ordenação
+    rankingData.sort((a, b) =&gt; {
+      if (b.totalScore !== a.totalScore) {
+        return b.totalScore - a.totalScore;
+      }
+
+      if (b.outerReferenceScore !== a.outerReferenceScore) {
+        return b.outerReferenceScore - a.outerReferenceScore;
+      }
+
+      if (b.termOccurrenceScore !== a.termOccurrenceScore) {
+        return b.termOccurrenceScore - a.termOccurrenceScore;
+      }
+
+      return b.selfReferenceScore - a.selfReferenceScore;
+    });
+
+    // armazenando dados
+    fs.writeFileSync(searchFile, JSON.stringify(rankingData, null, &quot;\t&quot;));
+
+  } catch (error) {
+    console.error(&#39;Erro na busca\n&#39;);
+  }
+}</code></pre>
+
+        <h3>Arquivo</h3>
+
+<pre><code>[
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/interestelar.html&quot;,
+  &quot;totalScore&quot;: 40,
+  &quot;outerReferenceScore&quot;: 40,
+  &quot;outerReference&quot;: 4,
+  &quot;termOccurrenceScore&quot;: 0,
+  &quot;termOccurrence&quot;: 0,
+  &quot;selfReferenceScore&quot;: 0,
+  &quot;selfReference&quot;: 0
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/matrix.html&quot;,
+  &quot;totalScore&quot;: 30,
+  &quot;outerReferenceScore&quot;: 30,
+  &quot;outerReference&quot;: 3,
+  &quot;termOccurrenceScore&quot;: 0,
+  &quot;termOccurrence&quot;: 0,
+  &quot;selfReferenceScore&quot;: 0,
+  &quot;selfReference&quot;: 0
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/mochileiro.html&quot;,
+  &quot;totalScore&quot;: 30,
+  &quot;outerReferenceScore&quot;: 30,
+  &quot;outerReference&quot;: 3,
+  &quot;termOccurrenceScore&quot;: 0,
+  &quot;termOccurrence&quot;: 0,
+  &quot;selfReferenceScore&quot;: 0,
+  &quot;selfReference&quot;: 0
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;,
+  &quot;totalScore&quot;: 25,
+  &quot;outerReferenceScore&quot;: 40,
+  &quot;outerReference&quot;: 4,
+  &quot;termOccurrenceScore&quot;: 0,
+  &quot;termOccurrence&quot;: 0,
+  &quot;selfReferenceScore&quot;: -15,
+  &quot;selfReference&quot;: 1
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/metropolis.html&quot;,
+  &quot;totalScore&quot;: 10,
+  &quot;outerReferenceScore&quot;: 10,
+  &quot;outerReference&quot;: 1,
+  &quot;termOccurrenceScore&quot;: 0,
+  &quot;termOccurrence&quot;: 0,
+  &quot;selfReferenceScore&quot;: 0,
+  &quot;selfReference&quot;: 0
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/duna.html&quot;,
+  &quot;totalScore&quot;: 10,
+  &quot;outerReferenceScore&quot;: 10,
+  &quot;outerReference&quot;: 1,
+  &quot;termOccurrenceScore&quot;: 0,
+  &quot;termOccurrence&quot;: 0,
+  &quot;selfReferenceScore&quot;: 0,
+  &quot;selfReference&quot;: 0
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/2001.html&quot;,
+  &quot;totalScore&quot;: 5,
+  &quot;outerReferenceScore&quot;: 0,
+  &quot;outerReference&quot;: 0,
+  &quot;termOccurrenceScore&quot;: 35,
+  &quot;termOccurrence&quot;: 7,
+  &quot;selfReferenceScore&quot;: -30,
+  &quot;selfReference&quot;: 2
+ }
+]</code></pre>
+
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <p><a href="slide5.html">Próximo</a></p>
+  </footer>
+</body>
+
+</html>

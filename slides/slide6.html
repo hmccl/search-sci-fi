@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apresentação do Buscador</title>
+  <meta name="author" content="Grupo">
+  <meta name="description" content="Apresentação do Buscador">
+  <link rel="stylesheet" href="https://unpkg.com/missing.css">
+  <link rel="icon" href="favicon.svg" type="image/svg">
+</head>
+
+<body>
+  <header>
+    <h1>Apresentação do Buscador de Filmes</h1>
+  </header>
+
+  <main>
+    <article>
+      <section>
+        <h3>Interface</h3>
+
+        <ul>
+          <li>Recebe o link inicial</li>
+          <li>Busca enquanto o usuário estiver interagido</li>
+        </ul>
+
+<pre><code>// interação com o usuário
+async function askUser(question) {
+  return new Promise((resolve) =&gt; {
+    rl.question(question, (answer) =&gt; {
+      resolve(answer.trim());
+    });
+  });
+}
+
+async function main() {
+  // URL inicial
+  let urlPage = await askUser(&#39;Endereço da página inicial:\n&#39;);
+  await crawlPage(urlPage);
+
+  try {
+    // loop de termo de busca
+    while (true) {
+      let searchTerm = await askUser(&#39;Termo de busca:\n&#39;);
+      await searchPage(searchTerm);
+      await displayResults();
+    }
+  } catch (error) {
+    console.error(&#39;Erro na execução\n&#39;);
+  }
+}</code></pre>
+
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <p><a href="slide7.html">Próximo</a></p>
+  </footer>
+</body>
+
+</html>

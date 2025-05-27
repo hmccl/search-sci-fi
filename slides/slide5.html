@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apresentação do Buscador</title>
+  <meta name="author" content="Grupo">
+  <meta name="description" content="Apresentação do Buscador">
+  <link rel="stylesheet" href="https://unpkg.com/missing.css">
+  <link rel="icon" href="favicon.svg" type="image/svg">
+</head>
+
+<body>
+  <header>
+    <h1>Apresentação do Buscador de Filmes</h1>
+  </header>
+
+  <main>
+    <article>
+      <section>
+        <h3>Tabela</h3>
+
+        <ul>
+          <li>Organiza os raking das páginas em uma tabela</li>
+        </ul>
+
+<pre><code>// tabela da interface do usuário
+async function displayResults() {
+  let table = new Table({
+    head: [&#39;URL&#39;, &#39;Ocorrências&#39;, &#39;Popularidade&#39;, &#39;Autorreferência&#39;, &#39;Total&#39;],
+  });
+
+  try {
+    // ler do arquivo
+    searchResults = JSON.parse(fs.readFileSync(searchFile, &#39;utf8&#39;));
+    // loop para cada página
+    searchResults.forEach(page =&gt; {
+      if (page.termOccurrence) {
+        table.push([
+          page.url,
+          page.termOccurrenceScore,
+          page.outerReferenceScore,
+          page.selfReferenceScore,
+          page.totalScore,
+        ])
+      }
+    });
+
+    // exibir no console
+    console.log(table.toString());
+
+  } catch (error) {
+    console.error(&#39;Erro na display\n&#39;);
+  }
+}</code></pre>
+
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <p><a href="slide6.html">Próximo</a></p>
+  </footer>
+</body>
+
+</html>

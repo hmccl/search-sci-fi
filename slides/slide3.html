@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apresentação do Buscador</title>
+  <meta name="author" content="Grupo">
+  <meta name="description" content="Apresentação do Buscador">
+  <link rel="stylesheet" href="https://unpkg.com/missing.css">
+  <link rel="icon" href="favicon.svg" type="image/svg">
+</head>
+
+<body>
+  <header>
+    <h1>Apresentação do Buscador de Filmes</h1>
+  </header>
+
+  <main>
+    <article>
+      <section>
+        <h3>Crawler</h3>
+
+        <ul>
+          <li>Realiza busca em largura do grafo a partir do link inicial</li>
+          <li>Adiciona na lista os links descobertos por página</li>
+          <li>Cria uma estrutura de dados</li>
+          <li>Salva os dados em um arquivo JSON</li>
+        </ul>
+
+<pre><code>// busca em largura
+async function crawlPage(url) {
+  // fila de links
+  let queue = [url];
+
+  while (queue.length &gt; 0) {
+    // próximo link
+    const url = queue.shift();
+
+    // pular se o link já foi visitado
+    if (visitedUrls.has(url)) {
+      continue;
+    }
+
+    // salvar se o link não foi visitado
+    visitedUrls.add(url);
+
+    try {
+      const response = await axios.get(url);
+      const $ = cheerio.load(response.data);
+      const links = $(&#39;a&#39;);
+      const content = $.html();
+      let hyperlinks = [];
+
+      links.each((i, ele) =&gt; {
+        const href = $(ele).attr(&#39;href&#39;);
+        if (href) {
+          // url absoluta
+          const absoluteUrl = new URL(href, url).href;
+          hyperlinks.push(absoluteUrl);
+
+          // adicionar novo link à fila
+          if (!visitedUrls.has(absoluteUrl)) {
+            queue.push(absoluteUrl);
+          }
+        }
+      });
+
+      // estrutura de dados
+      crawlResults.push({ url, content, hyperlinks });
+
+      // armazenando dados
+      fs.writeFileSync(crawlFile, JSON.stringify(crawlResults, null, &quot;\t&quot;));
+
+    } catch (err) {
+      console.error(&#39;Erro na varredura\n&#39;);
+    }
+  }
+}</code></pre>
+
+        <h3>Arquivo</h3>
+
+<pre><code>[
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/2001.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/metropolis.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/2001.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/2001.html&quot;
+  ]
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/metropolis.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;
+  ]
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/matrix.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/interestelar.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/mochileiro.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;
+  ]
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/matrix.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/interestelar.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/duna.html&quot;
+  ]
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/interestelar.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/mochileiro.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/matrix.html&quot;
+  ]
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/mochileiro.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/blade_runner.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/matrix.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/interestelar.html&quot;
+  ]
+ },
+ {
+  &quot;url&quot;: &quot;http://127.0.0.1:8000/sci-fi/duna.html&quot;,
+  &quot;content&quot;: &quot;&lt;!DOCTYPE html&gt;...&quot;,
+  &quot;hyperlinks&quot;: [
+   &quot;http://127.0.0.1:8000/sci-fi/interestelar.html&quot;,
+   &quot;http://127.0.0.1:8000/sci-fi/mochileiro.html&quot;
+  ]
+ }
+]</code></pre>
+
+      </section>
+    </article>
+  </main>
+
+  <footer>
+    <p><a href="slide4.html">Próximo</a></p>
+  </footer>
+</body>
+
+</html>
